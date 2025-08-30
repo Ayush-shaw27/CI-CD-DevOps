@@ -1,0 +1,2 @@
+CREATE DATABASE medical_records;
+SHOW TABLES;

@@ -1,21 +1,34 @@
-from fastapi import FastAPI, HTTPException
+import os
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.patients import router as patients_router
 from api.auth import router as auth_router
 from database.seed_data import seed_database
 import uvicorn
 
+# CORS origins from env (comma-separated), default to localhost dev ports
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    seed_database()
+    yield
+    # Shutdown
+
 # Create FastAPI application
 app = FastAPI(
     title="Medical Records API",
     description="Secure medical records management system with DevSecOps integration",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
-# CORS middleware for development
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,10 +53,6 @@ def health_check():
     """Health check endpoint for monitoring"""
     return {"status": "healthy", "service": "medical-records-api"}
 
-@app.on_event("startup")
-def startup_event():
-    """Initialize database on startup"""
-    seed_database()
 
 if __name__ == "__main__":
     uvicorn.run(

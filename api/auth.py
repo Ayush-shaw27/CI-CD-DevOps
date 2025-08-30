@@ -30,7 +30,7 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": UserResponse.from_orm(user)
+        "user": UserResponse.model_validate(user)
     }
 
 @router.post("/register", response_model=UserResponse)
@@ -68,4 +68,4 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_user)
     
-    return UserResponse.from_orm(db_user)
+    return UserResponse.model_validate(db_user)

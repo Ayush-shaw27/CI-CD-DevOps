@@ -1,296 +1,249 @@
-# Medical Records Web Portal - DevSecOps Backend
+# Medical Records API - DevSecOps Backend
 
-A secure medical records management system with integrated DevSecOps security scanning for CI/CD pipelines.
+A secure medical records management system built with FastAPI, SQLAlchemy, and JWT auth, with DevSecOps integration for CI/CD secret scanning.
 
-## 🏗️ Project Structure
+## Project Structure
 
-\`\`\`
-medical-records-devsecops/
-├── api/                    # API endpoints and schemas
-│   ├── auth.py            # Authentication endpoints
-│   ├── patients.py        # Patient CRUD operations
-│   └── schemas.py         # Pydantic models
-├── auth/                  # Authentication and security
-│   ├── dependencies.py    # Auth dependencies
-│   └── security.py        # JWT and password handling
-├── database/              # Database models and setup
-│   ├── models.py          # SQLAlchemy models
-│   └── seed_data.py       # Database seeding
-├── scanner/               # DevSecOps security scanning
+```
+CI-CD-DevOps/
+├── api/
+│   ├── auth.py               # Authentication endpoints
+│   ├── patients.py           # Patient CRUD endpoints
+│   └── schemas.py            # Pydantic models (v2 compatible)
+├── auth/
+│   ├── dependencies.py       # Auth dependencies (JWT Bearer)
+│   └── security.py           # JWT and password utilities
+├── database/
+│   ├── models.py             # SQLAlchemy models and DB session
+│   └── seed_data.py          # Seed initial users and patients
+├── scanner/
 │   ├── __init__.py
-│   └── gitleaks_scanner.py # GitLeaks integration
-├── scripts/               # Utility scripts
-│   └── run_security_scan.py # CI/CD security scan script
-├── tests/                 # Unit tests
-│   ├── test_api.py        # API endpoint tests
-│   └── test_scanner.py    # Scanner module tests
-├── reports/               # Generated security reports
-├── main.py                # FastAPI application
-└── requirements.txt       # Python dependencies
-\`\`\`
+│   └── gitleaks_scanner.py   # GitLeaks integration wrapper
+├── scripts/
+│   └── run_security_scan.py  # Entry point for security scans
+├── tests/
+│   ├── test_api.py           # API endpoint tests
+│   ├── test_scanner.py       # Scanner tests
+│   └── test_database_models.py # DB env and connection tests
+├── reports/                  # Generated scan reports (created at runtime)
+├── main.py                   # FastAPI app (lifespan used for seeding)
+├── requirements.txt          # Python dependencies
+└── .env.example              # Example environment configuration
+```
 
-## 🚀 Quick Start
+## Requirements
 
-### 1. Install Dependencies
+- Python 3.10+
+- MySQL 8.x (or compatible)
+- Pip and virtual environment
+- Optional: GitLeaks installed on the system PATH for security scanning
 
-\`\`\`bash
+## Setup
+
+1) Clone the repository
+
+```
+git clone <repo-url>
+cd CI-CD-DevOps
+```
+
+2) Create and activate a virtual environment
+
+```
+python -m venv venv
+# Windows PowerShell
+venv\Scripts\Activate.ps1
+# macOS/Linux
+source venv/bin/activate
+```
+
+3) Install dependencies
+
+```
 pip install -r requirements.txt
-\`\`\`
+```
 
-### 2. Setup MySQL Database
+4) Configure environment
 
-**Install MySQL Server:**
-\`\`\`bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install mysql-server
+Copy .env.example to .env and edit values as needed.
 
-# macOS
-brew install mysql
+```
+cp .env.example .env   # Windows: copy .env.example .env
+```
 
-# Windows
-# Download from https://dev.mysql.com/downloads/mysql/
-\`\`\`
+Required variables:
+- DATABASE_URL (mysql+pymysql://user:pass@host:port/db)
+- SECRET_KEY (JWT secret)
+- ACCESS_TOKEN_EXPIRE_MINUTES (default 30)
+- CORS_ORIGINS (comma-separated list)
+- Optional: TEST_DATABASE_URL for running API tests against a test DB
 
-**Create Database:**
-\`\`\`sql
+5) Prepare MySQL
+
+Create databases for development and testing.
+
+```
 mysql -u root -p
 CREATE DATABASE medical_records;
-CREATE DATABASE medical_records_test; -- For testing
+CREATE DATABASE medical_records_test;
 GRANT ALL PRIVILEGES ON medical_records.* TO 'root'@'localhost';
 GRANT ALL PRIVILEGES ON medical_records_test.* TO 'root'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
-\`\`\`
+```
 
-### 3. Configure Database Connection
+6) Initialize and seed the database
 
-Set environment variable or update `database/models.py`:
-\`\`\`bash
-export DATABASE_URL="mysql+pymysql://root:password@localhost:3306/medical_records"
-\`\`\`
+Option A: Use the seed script (creates tables and inserts initial data)
 
-### 4. Initialize Database
-
-\`\`\`bash
+```
 python database/seed_data.py
-\`\`\`
+```
 
-### 5. Run the Application
+Option B: Create tables only
 
-\`\`\`bash
+```
+python -c "from database.models import create_tables; create_tables()"
+```
+
+## Running the Application
+
+Development (auto-reload via uvicorn is already wired if you prefer):
+
+```
 python main.py
-\`\`\`
+# or
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
 
-The API will be available at `http://localhost:8000`
+The API will be available at http://localhost:8000
 
-### 6. Access API Documentation
+API documentation:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+## Authentication
 
-## 🔐 Authentication
-
-### Default Users (for testing)
-
-- **Doctor**: `dr_smith` / `doctor123`
-- **Staff**: `nurse_jane` / `staff123`
-
-### Login Process
-
-1. POST `/auth/login` with credentials
-2. Receive JWT token in response
-3. Include token in Authorization header: `Bearer <token>`
-
-## 📋 API Endpoints
-
-### Authentication
-- `POST /auth/login` - User login
-- `POST /auth/register` - User registration
-
-### Patients (Requires Authentication)
-- `GET /patients/` - List all patients
-- `GET /patients/{id}` - Get specific patient
-- `POST /patients/` - Create new patient
-- `PUT /patients/{id}` - Update patient
-- `DELETE /patients/{id}` - Delete patient
-
-### System
-- `GET /` - API information
-- `GET /health` - Health check
-
-## 🔒 DevSecOps Integration
-
-### Security Scanning
-
-The project includes GitLeaks integration for secret detection in CI/CD pipelines.
-
-#### Manual Scan
-
-\`\`\`bash
-python scripts/run_security_scan.py
-\`\`\`
-
-#### CI/CD Integration
-
-Add to your pipeline configuration:
-
-**GitHub Actions:**
-\`\`\`yaml
-- name: Security Scan
-  run: python scripts/run_security_scan.py
-\`\`\`
-
-**Jenkins:**
-\`\`\`groovy
-stage('Security Scan') {
-    steps {
-        sh 'python scripts/run_security_scan.py'
-    }
-}
-\`\`\`
-
-**GitLab CI:**
-\`\`\`yaml
-security_scan:
-  script:
-    - python scripts/run_security_scan.py
-\`\`\`
-
-### Scan Reports
-
-- Latest scan: `reports/gitleaks-latest.json`
-- Scan history: `reports/gitleaks-history.json`
-
-### Build Failure Conditions
-
-The build will fail if:
-- Critical secrets are detected (AWS keys, API tokens, passwords)
-- Scanner encounters errors
-- Exit code 1 is returned for CI/CD integration
-
-## 🧪 Testing
-
-### Prerequisites for Testing
-
-Ensure MySQL test database exists:
-\`\`\`sql
-CREATE DATABASE medical_records_test;
-\`\`\`
-
-Set test database URL:
-\`\`\`bash
-export TEST_DATABASE_URL="mysql+pymysql://root:password@localhost:3306/medical_records_test"
-\`\`\`
-
-### Run Unit Tests
-
-\`\`\`bash
-pytest tests/
-\`\`\`
-
-### Run Specific Test Files
-
-\`\`\`bash
-pytest tests/test_api.py
-pytest tests/test_scanner.py
-\`\`\`
-
-### Test Coverage
-
-\`\`\`bash
-pytest --cov=. tests/
-\`\`\`
-
-## 🛡️ Security Features
-
-### Input Validation
-- All user inputs are validated and sanitized
-- SQL injection protection via SQLAlchemy ORM
-- XSS prevention through proper data handling
-
-### Authentication & Authorization
 - JWT-based authentication
-- Role-based access control (doctor/staff)
-- Secure password hashing with bcrypt
+- Default seeded users (if you ran the seeder):
+  - Doctor: username=dr_smith, password=doctor123
+  - Staff: username=nurse_jane, password=staff123
 
-### DevSecOps Integration
-- Automated secret scanning with GitLeaks
-- CI/CD pipeline integration
-- Security report generation
-- Build failure on critical findings
+Login flow:
+1) POST /auth/login with JSON body {"username": "...", "password": "..."}
+2) Receive access_token in response
+3) Include header Authorization: Bearer <access_token> for protected routes
 
-## 🔧 Configuration
+## API Endpoints
 
-### Environment Variables
+Authentication
+- POST /auth/login
+- POST /auth/register
 
-Create a `.env` file for production:
+Patients (requires Authorization header)
+- GET /patients/
+- GET /patients/{id}
+- POST /patients/
+- PUT /patients/{id}
+- DELETE /patients/{id}
 
-\`\`\`env
-SECRET_KEY=your-super-secret-key-here
-DATABASE_URL=mysql+pymysql://username:password@localhost:3306/medical_records
-TEST_DATABASE_URL=mysql+pymysql://username:password@localhost:3306/medical_records_test
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-\`\`\`
+System
+- GET /
+- GET /health
 
-### Database Configuration
+## Configuration Notes
 
-The application now uses MySQL by default. Connection string format:
-\`\`\`
-mysql+pymysql://username:password@host:port/database_name
-\`\`\`
+- .env is loaded from the project root regardless of current working directory
+- SECRET_KEY and ACCESS_TOKEN_EXPIRE_MINUTES are read from environment variables
+- CORS_ORIGINS can be set via environment (comma-separated)
+- SQLAlchemy version is 1.4.x for compatibility across environments
+- Pydantic models are v2-compatible
 
-**Production MySQL Setup:**
-- Use strong passwords for database users
-- Enable SSL connections for remote databases
-- Configure proper user privileges (avoid using root in production)
-- Set up regular database backups
+## Testing
 
-## 📊 Example Patient Data
+Prerequisites:
+- Ensure MySQL test database exists: medical_records_test
+- Set TEST_DATABASE_URL in environment or rely on default inside tests if configured
 
-The system includes sample patient records:
+Run tests:
 
-1. **John Doe** - Hypertension, Type 2 Diabetes
-2. **Jane Wilson** - Seasonal Allergies  
-3. **Robert Johnson** - Lower Back Pain
+```
+pytest -q
+```
 
-## 🚨 Security Considerations
+Notes:
+- Some tests will be skipped automatically if the MySQL test database is not available
+- tests/test_database_models.py includes a connectivity helper test without hitting a live DB by mocking the engine
 
-### Production Deployment
+## DevSecOps: Security Scanning
 
-1. **Change default secret key** in `auth/security.py`
-2. **Use environment variables** for sensitive configuration
-3. **Enable HTTPS** for all communications
-4. **Implement rate limiting** for API endpoints
-5. **Use production MySQL setup** with proper user privileges
-6. **Enable MySQL SSL connections** for remote databases
-7. **Enable logging and monitoring**
+Manual security scan (requires GitLeaks installed on your system PATH):
 
-### CI/CD Security
+```
+python scripts/run_security_scan.py
+```
 
-1. **Run security scans** on every commit
-2. **Fail builds** on critical security findings
-3. **Store scan reports** for audit trails
-4. **Monitor for new vulnerabilities** regularly
+Outputs:
+- Latest report: reports/gitleaks-latest.json
+- History: reports/gitleaks-history.json
 
-## 📝 Development Notes
+CI integration examples:
+- Use your CI runner to install GitLeaks via the OS package manager
+- Then run: python scripts/run_security_scan.py
 
-- Built with FastAPI for high performance and automatic API documentation
-- Uses SQLAlchemy ORM with MySQL database for production-ready data storage
-- Implements JWT authentication with role-based access
-- Includes comprehensive error handling and input validation
-- Follows REST API best practices
-- Integrates with DevSecOps tools for security scanning
-- MySQL provides ACID compliance and better concurrent access than SQLite
+Build failure conditions:
+- Critical secrets found
+- Scanner errors occur
 
-## 🤝 Contributing
+## Database Utilities
 
-1. Fork the repository
-2. Create a feature branch
-3. Run security scans: `python scripts/run_security_scan.py`
-4. Run tests: `pytest tests/`
-5. Submit a pull request
+Quick connectivity check from Python REPL:
 
-## 📄 License
+```
+from database.models import test_connection, create_tables
+print("DB OK:", test_connection())
+create_tables()
+```
 
-This project is for educational and demonstration purposes.
+Seeding:
+
+```
+from database.seed_data import seed_database
+seed_database()
+```
+
+## Git Workflow for Team
+
+1) Create a feature branch
+```
+git checkout -b feat/<short-description>
+```
+2) Ensure code quality locally
+```
+pip install -r requirements.txt
+pytest -q
+python scripts/run_security_scan.py
+```
+3) Commit and push
+```
+git add -A
+git commit -m "feat: <summary>"
+git push origin feat/<short-description>
+```
+4) Open a pull request for review
+
+## Troubleshooting
+
+- DATABASE_URL is None
+  - Ensure .env exists at project root and contains DATABASE_URL
+  - Confirm the .env format is correct; run `python -c "import os; print(os.getcwd())"` to verify your CWD when running commands
+- Authentication fails with 401
+  - Verify the Authorization header is set: `Authorization: Bearer <token>`
+  - Regenerate token via /auth/login
+- MySQL connection errors
+  - Validate host, port, user, password in DATABASE_URL
+  - Confirm MySQL server is running and user has privileges on the target database
+
+## License
+
+This project is intended for educational and team demonstration purposes.
