@@ -12,13 +12,13 @@ from scanner.gitleaks_scanner import GitLeaksScanner
 
 def main():
     """Main function for security scanning"""
-    print("🔒 Starting DevSecOps Security Scan...")
+    print(" Starting DevSecOps Security Scan...")
     
     # Initialize scanner
     scanner = GitLeaksScanner(repo_path=".", reports_dir="reports")
     
     # Run GitLeaks scan
-    print("🔍 Running GitLeaks secret detection...")
+    print(" Running GitLeaks secret detection...")
     results = scanner.run_gitleaks_scan()
     
     # Save results to history
