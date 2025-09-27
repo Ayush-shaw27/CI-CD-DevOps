@@ -11,7 +11,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 # Get DB URL from .env
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "mysql+pymysql://root:Baroda%40123@localhost:3306/medical_records"
+    "mysql+pymysql://root:mypassword@localhost:3306/medical_records"
 )
 
 # Setup engine and session
