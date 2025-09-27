@@ -139,18 +139,18 @@ class GitLeaksScanner:
         print("="*60)
         
         if "error" in scan_results:
-            print(f"❌ Scan failed: {scan_results['error']}")
+            print(f" Scan failed: {scan_results['error']}")
             return
         
         summary = scan_results["summary"]
-        print(f"📊 Total findings: {summary['total_findings']}")
-        print(f"🔴 Critical: {summary['critical_findings']}")
-        print(f"🟠 High: {summary['high_findings']}")
-        print(f"🟡 Medium: {summary['medium_findings']}")
-        print(f"🟢 Low: {summary['low_findings']}")
+        print(f" Total findings: {summary['total_findings']}")
+        print(f" Critical: {summary['critical_findings']}")
+        print(f" High: {summary['high_findings']}")
+        print(f" Medium: {summary['medium_findings']}")
+        print(f" Low: {summary['low_findings']}")
         
         if scan_results["findings"]:
-            print("\n📋 DETAILED FINDINGS:")
+            print("\n DETAILED FINDINGS:")
             for i, finding in enumerate(scan_results["findings"][:5], 1):  # Show first 5
                 print(f"\n{i}. {finding.get('RuleID', 'Unknown Rule')}")
                 print(f"   File: {finding.get('File', 'Unknown')}")
@@ -186,10 +186,10 @@ def main():
     
     # Exit with appropriate code for CI/CD
     if scanner.should_fail_build(results):
-        print("\n❌ Build should FAIL due to security findings!")
+        print("\n Build should FAIL due to security findings!")
         sys.exit(1)
     else:
-        print("\n✅ Build can PROCEED - no critical security issues found")
+        print("\n Build can PROCEED - no critical security issues found")
         sys.exit(0)
 
 if __name__ == "__main__":
