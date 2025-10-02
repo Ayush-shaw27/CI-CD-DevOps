@@ -1,0 +1,47 @@
+﻿name: Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  gitleaks_scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install GitLeaks
+        run: |
+          curl -sSL https://github.com/zricethezav/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz | tar -xz
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Run GitLeaks scan
+        run: |
+          mkdir -p reports
+          gitleaks detect --source . --report-format json --report-path reports/gitleaks-report.json --redact -v
+
+      - name: Upload scan report
+        uses: actions/upload-artifact@v3
+        with:
+          name: gitleaks-report
+          path: reports/gitleaks-report.json
+
+      - name: Fail PR if secrets found
+        run: |
+          if [ -s reports/gitleaks-report.json ]; then
+            echo 'Secrets found! Failing the workflow.'
+            exit 1
+          else
+            echo 'No secrets found.'
+          fi
