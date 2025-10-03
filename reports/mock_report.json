@@ -1,0 +1,50 @@
+{
+  "secrets": [
+    {
+      "scanner": "GitLeaks",
+      "rule_id": "GIT001",
+      "file_path": "api/auth.py",
+      "severity": "CRITICAL",
+      "message": "Hardcoded AWS Access Key found"
+    },
+    {
+      "scanner": "GitLeaks",
+      "rule_id": "GIT002",
+      "file_path": "database/models.py",
+      "severity": "HIGH",
+      "message": "Potential hardcoded database password"
+    }
+  ],
+  "iac": [
+    {
+      "scanner": "Checkov",
+      "rule_id": "CKV_AWS_001",
+      "file_path": "infra/main.tf",
+      "severity": "HIGH",
+      "message": "S3 bucket allows public read access"
+    },
+    {
+      "scanner": "Checkov",
+      "rule_id": "CKV_AWS_002",
+      "file_path": "infra/sg.tf",
+      "severity": "MEDIUM",
+      "message": "Security group allows ingress from 0.0.0.0/0"
+    }
+  ],
+  "container": [
+    {
+      "scanner": "Trivy",
+      "rule_id": "CVE-2023-12345",
+      "package": "openssl",
+      "severity": "CRITICAL",
+      "message": "Vulnerability in OpenSSL < 1.1.1v"
+    },
+    {
+      "scanner": "Trivy",
+      "rule_id": "CVE-2023-56789",
+      "package": "curl",
+      "severity": "LOW",
+      "message": "Outdated curl version with minor bug"
+    }
+  ]
+}
