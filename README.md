@@ -1,249 +1,207 @@
-# Medical Records API - DevSecOps Backend
+# CI/CD Security Plugin - DevSecOps Project
 
-A secure medical records management system built with FastAPI, SQLAlchemy, and JWT auth, with DevSecOps integration for CI/CD secret scanning.
+A modular, security-focused plugin that integrates into CI/CD pipelines (GitHub Actions, Jenkins) to automatically scan for:
+- **Secrets** in code (using GitLeaks)
+- **Infrastructure-as-Code (IaC) misconfigurations** (using Checkov)
+- **Container vulnerabilities** (using Trivy)
 
-## Project Structure
+The plugin ensures security checks are automated before deployment, preventing leaks, misconfigurations, and vulnerabilities from reaching production.
+
+---
+
+## 📌 Project Overview
+This project demonstrates a **CI/CD Security Plugin** integrated into a real-world **E-Commerce Site pipeline**. The plugin acts as a *security stage* inside CI/CD, enforcing "shift-left security" by catching issues early in development.
+
+**Example Workflow:**
+1. Developer pushes code to GitHub.
+2. GitHub Actions pipeline starts:
+   - Build → Test → **Security Scan (Plugin)** → Deploy.
+3. The plugin scans for secrets, IaC misconfigs, and container vulnerabilities.
+4. Reports are generated and build passes/fails based on policy thresholds.
+
+---
+
+## 🏗 Architecture
 
 ```
-CI-CD-DevOps/
-├── api/
-│   ├── auth.py               # Authentication endpoints
-│   ├── patients.py           # Patient CRUD endpoints
-│   └── schemas.py            # Pydantic models (v2 compatible)
-├── auth/
-│   ├── dependencies.py       # Auth dependencies (JWT Bearer)
-│   └── security.py           # JWT and password utilities
-├── database/
-│   ├── models.py             # SQLAlchemy models and DB session
-│   └── seed_data.py          # Seed initial users and patients
-├── scanner/
-│   ├── __init__.py
-│   └── gitleaks_scanner.py   # GitLeaks integration wrapper
-├── scripts/
-│   └── run_security_scan.py  # Entry point for security scans
-├── tests/
-│   ├── test_api.py           # API endpoint tests
-│   ├── test_scanner.py       # Scanner tests
-│   └── test_database_models.py # DB env and connection tests
-├── reports/                  # Generated scan reports (created at runtime)
-├── main.py                   # FastAPI app (lifespan used for seeding)
-├── requirements.txt          # Python dependencies
-└── .env.example              # Example environment configuration
+ci-cd-security-plugin/
+├── config/               # YAML/JSON config files (scan settings, thresholds)
+│   └── config.yaml
+├── src/
+│   └── ci_cd_plugin/
+│       ├── scanners/     # SecretScanner, IacScanner, ContainerScanner
+│       ├── core/         # Orchestrator to run scanners
+│       ├── policy/       # Policy Engine (fail/pass logic)
+│       └── reporter/     # Report generator (JSON/CLI/HTML)
+├── infra/                # Example Terraform/CloudFormation files
+├── tests/                # Unit tests
+├── reports/              # Generated reports
+├── requirements.txt
+├── pyproject.toml
+└── README.md
 ```
 
-## Requirements
+---
 
+## ⚙️ Config (config/config.yaml)
+
+```yaml
+project:
+  name: "secscan-demo"
+  version: "0.1.0"
+
+paths:
+  repo_root: "."
+  iac_path: "infra"
+  reports_path: "reports"
+
+scans:
+  secrets:
+    enabled: true
+    tool: "gitleaks"
+  iac:
+    enabled: true
+    tool: "checkov"
+    severity_thresholds:
+      fail_on: ["HIGH", "CRITICAL"]
+      warn_on: ["MEDIUM"]
+  container:
+    enabled: true
+    tool: "trivy"
+
+report:
+  formats: ["json", "cli"]
+  redact_values: true
+  save_raw_tool_outputs: true
+```
+
+---
+
+## 🚀 Setup & Installation
+
+### Prerequisites
 - Python 3.10+
-- MySQL 8.x (or compatible)
-- Pip and virtual environment
-- Optional: GitLeaks installed on the system PATH for security scanning
+- Git
+- Docker Desktop (for Trivy)
+- GitHub account
 
-## Setup
+### Installation
+```bash
+# Clone the repo
+git clone <your-repo-url>
+cd ci-cd-security-plugin
 
-1) Clone the repository
+# Setup virtual environment
+python -m venv .venv
+source .venv/bin/activate   # (Linux/macOS)
+.\.venv\Scriptsctivate    # (Windows PowerShell)
 
-```
-git clone <repo-url>
-cd CI-CD-DevOps
-```
-
-2) Create and activate a virtual environment
-
-```
-python -m venv venv
-# Windows PowerShell
-venv\Scripts\Activate.ps1
-# macOS/Linux
-source venv/bin/activate
-```
-
-3) Install dependencies
-
-```
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-4) Configure environment
+---
 
-Copy .env.example to .env and edit values as needed.
+## 🔍 Running the Plugin
 
-```
-cp .env.example .env   # Windows: copy .env.example .env
-```
-
-Required variables:
-- DATABASE_URL (mysql+pymysql://user:pass@host:port/db)
-- SECRET_KEY (JWT secret)
-- ACCESS_TOKEN_EXPIRE_MINUTES (default 30)
-- CORS_ORIGINS (comma-separated list)
-- Optional: TEST_DATABASE_URL for running API tests against a test DB
-
-5) Prepare MySQL
-
-Create databases for development and testing.
-
-```
-mysql -u root -p
-CREATE DATABASE medical_records;
-CREATE DATABASE medical_records_test;
-GRANT ALL PRIVILEGES ON medical_records.* TO 'root'@'localhost';
-GRANT ALL PRIVILEGES ON medical_records_test.* TO 'root'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
+### Run Locally
+```bash
+python -m src.ci_cd_plugin.core.run --config config/config.yaml
 ```
 
-6) Initialize and seed the database
-
-Option A: Use the seed script (creates tables and inserts initial data)
-
-```
-python database/seed_data.py
+### Run Secret Scanner Only
+```bash
+gitleaks detect --source . --report-format json --report-path reports/gitleaks.json
 ```
 
-Option B: Create tables only
-
-```
-python -c "from database.models import create_tables; create_tables()"
-```
-
-## Running the Application
-
-Development (auto-reload via uvicorn is already wired if you prefer):
-
-```
-python main.py
-# or
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+### Run IaC Scanner Only
+```bash
+checkov -d infra -o json > reports/checkov.json
 ```
 
-The API will be available at http://localhost:8000
-
-API documentation:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-
-## Authentication
-
-- JWT-based authentication
-- Default seeded users (if you ran the seeder):
-  - Doctor: username=dr_smith, password=doctor123
-  - Staff: username=nurse_jane, password=staff123
-
-Login flow:
-1) POST /auth/login with JSON body {"username": "...", "password": "..."}
-2) Receive access_token in response
-3) Include header Authorization: Bearer <access_token> for protected routes
-
-## API Endpoints
-
-Authentication
-- POST /auth/login
-- POST /auth/register
-
-Patients (requires Authorization header)
-- GET /patients/
-- GET /patients/{id}
-- POST /patients/
-- PUT /patients/{id}
-- DELETE /patients/{id}
-
-System
-- GET /
-- GET /health
-
-## Configuration Notes
-
-- .env is loaded from the project root regardless of current working directory
-- SECRET_KEY and ACCESS_TOKEN_EXPIRE_MINUTES are read from environment variables
-- CORS_ORIGINS can be set via environment (comma-separated)
-- SQLAlchemy version is 1.4.x for compatibility across environments
-- Pydantic models are v2-compatible
-
-## Testing
-
-Prerequisites:
-- Ensure MySQL test database exists: medical_records_test
-- Set TEST_DATABASE_URL in environment or rely on default inside tests if configured
-
-Run tests:
-
-```
-pytest -q
+### Run Container Scanner Only
+```bash
+trivy fs . --format json --output reports/trivy.json
 ```
 
-Notes:
-- Some tests will be skipped automatically if the MySQL test database is not available
-- tests/test_database_models.py includes a connectivity helper test without hitting a live DB by mocking the engine
+---
 
-## DevSecOps: Security Scanning
+## 📊 Reports & Frontend
 
-Manual security scan (requires GitLeaks installed on your system PATH):
+The plugin generates:
+- **CLI Output** → Build logs in GitHub Actions.
+- **JSON Reports** → For automation & machine processing.
+- **HTML Reports** (optional) → Human-readable summary with severity breakdowns.
 
+Reports show:
+- Number of issues found
+- Severity breakdown (Critical, High, Medium, Low)
+- Files/lines/resources affected
+- Pass/Fail decision
+
+---
+
+## 🔗 CI/CD Integration (GitHub Actions Example)
+
+Create `.github/workflows/security-scan.yml`:
+
+```yaml
+name: Security Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Security Plugin
+        run: python -m src.ci_cd_plugin.core.run --config config/config.yaml
+
+      - name: Upload Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: reports/
 ```
-python scripts/run_security_scan.py
-```
 
-Outputs:
-- Latest report: reports/gitleaks-latest.json
-- History: reports/gitleaks-history.json
+---
 
-CI integration examples:
-- Use your CI runner to install GitLeaks via the OS package manager
-- Then run: python scripts/run_security_scan.py
+## 🏥 Example Use Case (E-Commerce Site)
 
-Build failure conditions:
-- Critical secrets found
-- Scanner errors occur
+The plugin is demonstrated on an **E-Commerce pipeline** because:
+- Handles **payments & user accounts** → needs strict security.
+- Has **backend code, IaC, and containers** → all three scanner types apply.
+- Industry relevance → PCI-DSS & cloud compliance.
 
-## Database Utilities
+---
 
-Quick connectivity check from Python REPL:
+## 📈 Future Enhancements
 
-```
-from database.models import test_connection, create_tables
-print("DB OK:", test_connection())
-create_tables()
-```
+- Parallel scanning for faster runs
+- Slack/Email notifications for critical findings
+- Scheduled scans (nightly/weekly)
+- Central dashboard with visualizations
+- Extend support for Azure & GCP IaC scanning
 
-Seeding:
+---
 
-```
-from database.seed_data import seed_database
-seed_database()
-```
+## 📜 License
+This project is licensed under the MIT License.
 
-## Git Workflow for Team
-
-1) Create a feature branch
-```
-git checkout -b feat/<short-description>
-```
-2) Ensure code quality locally
-```
-pip install -r requirements.txt
-pytest -q
-python scripts/run_security_scan.py
-```
-3) Commit and push
-```
-git add -A
-git commit -m "feat: <summary>"
-git push origin feat/<short-description>
-```
-4) Open a pull request for review
-
-## Troubleshooting
-
-- DATABASE_URL is None
-  - Ensure .env exists at project root and contains DATABASE_URL
-  - Confirm the .env format is correct; run `python -c "import os; print(os.getcwd())"` to verify your CWD when running commands
-- Authentication fails with 401
-  - Verify the Authorization header is set: `Authorization: Bearer <token>`
-  - Regenerate token via /auth/login
-- MySQL connection errors
-  - Validate host, port, user, password in DATABASE_URL
-  - Confirm MySQL server is running and user has privileges on the target database
-
-## License
-
-This project is intended for educational and team demonstration purposes.
+---
