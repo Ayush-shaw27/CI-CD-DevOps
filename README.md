@@ -182,12 +182,13 @@ jobs:
 
 ---
 
-## 🏥 Example Use Case (E-Commerce Site)
+## 🏥 Example Use Case (Medical Records Management System)
 
-The plugin is demonstrated on an **E-Commerce pipeline** because:
-- Handles **payments & user accounts** → needs strict security.
-- Has **backend code, IaC, and containers** → all three scanner types apply.
-- Industry relevance → PCI-DSS & cloud compliance.
+The plugin is demonstrated on a **Medical Records Management System pipeline** because:
+- Handles **sensitive patient data & personal health information (PHI)** → requires strict security and compliance (HIPAA/GDPR).  
+- Has **backend code, Infrastructure-as-Code, and containerized services** → all three scanner types apply.  
+- Industry relevance → Protecting patient data, ensuring regulatory compliance, and preventing breaches in healthcare applications.
+
 
 ---
 
