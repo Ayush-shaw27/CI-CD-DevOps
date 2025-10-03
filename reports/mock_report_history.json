@@ -1,0 +1,90 @@
+[
+  {
+    "build_id": 1,
+    "timestamp": "2025-09-15T10:00:00Z",
+    "secrets": {
+      "CRITICAL": 2,
+      "HIGH": 1,
+      "MEDIUM": 0,
+      "LOW": 0
+    },
+    "iac": {
+      "CRITICAL": 1,
+      "HIGH": 2,
+      "MEDIUM": 1,
+      "LOW": 0
+    },
+    "container": {
+      "CRITICAL": 3,
+      "HIGH": 2,
+      "MEDIUM": 1,
+      "LOW": 1
+    }
+  },
+  {
+    "build_id": 2,
+    "timestamp": "2025-09-16T10:00:00Z",
+    "secrets": {
+      "CRITICAL": 1,
+      "HIGH": 1,
+      "MEDIUM": 0,
+      "LOW": 0
+    },
+    "iac": {
+      "CRITICAL": 1,
+      "HIGH": 1,
+      "MEDIUM": 1,
+      "LOW": 0
+    },
+    "container": {
+      "CRITICAL": 2,
+      "HIGH": 2,
+      "MEDIUM": 1,
+      "LOW": 1
+    }
+  },
+  {
+    "build_id": 3,
+    "timestamp": "2025-09-17T10:00:00Z",
+    "secrets": {
+      "CRITICAL": 1,
+      "HIGH": 0,
+      "MEDIUM": 0,
+      "LOW": 0
+    },
+    "iac": {
+      "CRITICAL": 0,
+      "HIGH": 1,
+      "MEDIUM": 1,
+      "LOW": 0
+    },
+    "container": {
+      "CRITICAL": 1,
+      "HIGH": 1,
+      "MEDIUM": 1,
+      "LOW": 1
+    }
+  },
+  {
+    "build_id": 4,
+    "timestamp": "2025-09-18T10:00:00Z",
+    "secrets": {
+      "CRITICAL": 0,
+      "HIGH": 0,
+      "MEDIUM": 0,
+      "LOW": 0
+    },
+    "iac": {
+      "CRITICAL": 0,
+      "HIGH": 1,
+      "MEDIUM": 0,
+      "LOW": 0
+    },
+    "container": {
+      "CRITICAL": 0,
+      "HIGH": 1,
+      "MEDIUM": 1,
+      "LOW": 1
+    }
+  }
+]
