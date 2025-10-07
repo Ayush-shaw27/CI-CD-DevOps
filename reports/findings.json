@@ -1,0 +1,23 @@
+{
+  "repo": "healthcare-portal",
+  "findings": [
+    {
+      "title": "Hardcoded password",
+      "description": "A plaintext password was found in settings.py",
+      "severity": "HIGH",
+      "file": "app/settings.py",
+      "line": 45,
+      "policy": "secret-scan"
+    },
+    {
+      "title": "Outdated library",
+      "description": "Flask 1.0 detected, upgrade to >=2.3",
+      "severity": "MEDIUM",
+      "file": "requirements.txt",
+      "policy": "dependency-check"
+    }
+  ],
+  "meta": {
+    "report_url": "https://ci.example.com/builds/123/report.html"
+  }
+}
