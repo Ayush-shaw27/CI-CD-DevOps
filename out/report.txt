@@ -1,0 +1,31 @@
+Scan ID: scan-2025-10-02T15:20:29.449923
+Repo: github.com/org/repo
+Timestamp: 2025-10-02T15:20:29.449923Z
+
+Summary:
+  CRITICAL : 1
+  HIGH     : 1
+  MEDIUM   : 1
+  LOW      : 0
+  INFO     : 0
+  TOTAL   : 3
+
+Findings:
+[CRITICAL] Open S3 bucket
+  Location : terraform/s3.tf:5
+  Policy   : checkov-aws-1
+  Description:
+  S3 had public read
+------------------------------------------------------------------------
+[HIGH] Hardcoded AWS key
+  Location : config.yml:12
+  Policy   : gitleaks-aws-key
+  Description:
+  Found AWS_ACCESS_KEY_ID in config.yml
+------------------------------------------------------------------------
+[MEDIUM] Outdated base image
+  Location : Dockerfile
+  Policy   : trivy-image
+  Description:
+  Base image has CVE-2024-xxxx
+------------------------------------------------------------------------

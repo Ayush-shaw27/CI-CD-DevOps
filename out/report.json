@@ -1,0 +1,45 @@
+{
+  "scan_id": "scan-2025-10-02T15:20:29.449923",
+  "repo": "github.com/org/repo",
+  "timestamp": "2025-10-02T15:20:29.449923Z",
+  "summary": {
+    "CRITICAL": 1,
+    "HIGH": 1,
+    "MEDIUM": 1,
+    "LOW": 0,
+    "INFO": 0,
+    "TOTAL": 3
+  },
+  "findings": [
+    {
+      "title": "Hardcoded AWS key",
+      "description": "Found AWS_ACCESS_KEY_ID in config.yml",
+      "severity": "HIGH",
+      "file": "config.yml",
+      "line": 12,
+      "policy": "gitleaks-aws-key",
+      "id": "Hardcoded AWS key"
+    },
+    {
+      "title": "Open S3 bucket",
+      "description": "S3 had public read",
+      "severity": "CRITICAL",
+      "file": "terraform/s3.tf",
+      "line": 5,
+      "policy": "checkov-aws-1",
+      "id": "Open S3 bucket"
+    },
+    {
+      "title": "Outdated base image",
+      "description": "Base image has CVE-2024-xxxx",
+      "severity": "MEDIUM",
+      "file": "Dockerfile",
+      "policy": "trivy-image",
+      "id": "Outdated base image",
+      "line": ""
+    }
+  ],
+  "meta": {
+    "report_url": "https://ci.example.com/reports/1234"
+  }
+}
