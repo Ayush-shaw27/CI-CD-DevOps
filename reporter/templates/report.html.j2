@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Security Scan Report - {{ repo or 'unknown' }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    body { font-family: Inter, Roboto, Arial, sans-serif; margin: 24px; color: #111; }
+    header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .meta { color:#666; font-size:0.9rem; }
+    .summary { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
+    .card { padding:10px 12px; border-radius:8px; background:#f8f9fb; box-shadow: 0 1px 3px rgba(0,0,0,0.03);}
+    .sev { font-weight:700; padding:6px 10px; border-radius:6px; color:white; display:inline-block; }
+    .finding { border-left:4px solid #ddd; padding:12px 16px; margin:12px 0; border-radius:6px; background:white; box-shadow:0 1px 4px rgba(0,0,0,0.03)}
+    .finding .meta { color:#555; font-size:0.85rem; margin-bottom:6px; }
+    pre.desc { white-space:pre-wrap; font-family:inherit; background:#fafafa; padding:8px; border-radius:6px; }
+    footer { margin-top:28px; color:#666; font-size:0.85rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Security Scan Report</h1>
+      <div class="meta">Repo: <strong>{{ repo or 'unknown' }}</strong> • Scan: <code>{{ scan_id }}</code> • {{ timestamp }}</div>
+    </div>
+    <div class="summary">
+      {% for sev in ['CRITICAL','HIGH','MEDIUM','LOW','INFO'] %}
+        <div class="card">
+          <div style="font-size:0.9rem;color:#333">{{ sev }}</div>
+          <div style="margin-top:4px;font-weight:700;font-size:1.2rem;color:{{ severity_colors.get(sev) }}">{{ summary.get(sev,0) }}</div>
+        </div>
+      {% endfor %}
+      <div class="card">
+        <div style="font-size:0.9rem;color:#333">TOTAL</div>
+        <div style="margin-top:4px;font-weight:700;font-size:1.2rem;">{{ summary.TOTAL }}</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    {% if not findings %}
+      <p>No findings — nice!</p>
+    {% else %}
+      {% for f in findings %}
+        <article class="finding">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <span class="sev" style="background:{{ severity_colors.get(f.severity,'#666') }}">{{ f.severity }}</span>
+              <strong style="margin-left:8px">{{ f.title }}</strong>
+            </div>
+            <div class="meta">
+              {{ f.file }}{% if f.line %}:{{ f.line }}{% endif %} • {{ f.policy }}
+            </div>
+          </div>
+          <div style="margin-top:8px" class="desc">{{ f.description }}</div>
+        </article>
+      {% endfor %}
+    {% endif %}
+  </main>
+
+  <footer>
+    Generated: {{ timestamp }} — plugin: CI/CD Security Integrator
+  </footer>
+</body>
+</html>
