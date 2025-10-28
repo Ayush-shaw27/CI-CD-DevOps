@@ -1,208 +1,197 @@
-# CI/CD Security Plugin - DevSecOps Project
+# 🏥 Medical Records API — DevSecOps Integrated CI/CD Project
 
-A modular, security-focused plugin that integrates into CI/CD pipelines (GitHub Actions, Jenkins) to automatically scan for:
-- **Secrets** in code (using GitLeaks)
-- **Infrastructure-as-Code (IaC) misconfigurations** (using Checkov)
-- **Container vulnerabilities** (using Trivy)
-
-The plugin ensures security checks are automated before deployment, preventing leaks, misconfigurations, and vulnerabilities from reaching production.
+A **secure medical records management system** built using **FastAPI**, **SQLAlchemy**, and **JWT authentication**, integrated with a **DevSecOps CI/CD plugin** that performs **automated security scans** (GitLeaks, Checkov, Trivy), **report generation**, and **Slack/email alerts**.
 
 ---
 
-## 📌 Project Overview
-This project demonstrates a **CI/CD Security Plugin** integrated into a real-world **E-Commerce Site pipeline**. The plugin acts as a *security stage* inside CI/CD, enforcing "shift-left security" by catching issues early in development.
-
-**Example Workflow:**
-1. Developer pushes code to GitHub.
-2. GitHub Actions pipeline starts:
-   - Build → Test → **Security Scan (Plugin)** → Deploy.
-3. The plugin scans for secrets, IaC misconfigs, and container vulnerabilities.
-4. Reports are generated and build passes/fails based on policy thresholds.
-
----
-
-## 🏗 Architecture
+## 🚀 Project Structure
 
 ```
-ci-cd-security-plugin/
-├── config/               # YAML/JSON config files (scan settings, thresholds)
-│   └── config.yaml
-├── src/
-│   └── ci_cd_plugin/
-│       ├── scanners/     # SecretScanner, IacScanner, ContainerScanner
-│       ├── core/         # Orchestrator to run scanners
-│       ├── policy/       # Policy Engine (fail/pass logic)
-│       └── reporter/     # Report generator (JSON/CLI/HTML)
-├── infra/                # Example Terraform/CloudFormation files
-├── tests/                # Unit tests
-├── reports/              # Generated reports
+CI-CD-DevOps/
+├── api/                    # FastAPI endpoints
+├── auth/                   # JWT & password utilities
+├── database/               # SQLAlchemy models & seed data
+├── scanner/                # Security scanners integration
+├── scripts/
+│   ├── run_security_scan.py # Executes security scans
+│   └── notify.py           # Slack/Email notification logic
+├── tests/                  # Unit tests for API, scanners, and alerts
+├── reports/                # Scan output (mock_report.json, etc.)
+├── docs/                   # Documentation (setup, verify, notify)
+├── main.py                 # FastAPI entrypoint
+├── config/                 # YAML configuration for scanners
 ├── requirements.txt
-├── pyproject.toml
-└── README.md
+└── .github/workflows/      # CI/CD workflows (GitHub Actions)
 ```
 
 ---
 
-## ⚙️ Config (config/config.yaml)
+## ⚙️ Requirements
 
-```yaml
-project:
-  name: "secscan-demo"
-  version: "0.1.0"
-
-paths:
-  repo_root: "."
-  iac_path: "infra"
-  reports_path: "reports"
-
-scans:
-  secrets:
-    enabled: true
-    tool: "gitleaks"
-  iac:
-    enabled: true
-    tool: "checkov"
-    severity_thresholds:
-      fail_on: ["HIGH", "CRITICAL"]
-      warn_on: ["MEDIUM"]
-  container:
-    enabled: true
-    tool: "trivy"
-
-report:
-  formats: ["json", "cli"]
-  redact_values: true
-  save_raw_tool_outputs: true
-```
+- **Python 3.10+**
+- **MySQL 8.x** (or compatible)
+- **Git**
+- **Virtual Environment**
+- **Optional:** Docker, GitLeaks, Checkov, Trivy (for full scans)
 
 ---
 
-## 🚀 Setup & Installation
+## 🧩 Setup
 
-### Prerequisites
-- Python 3.10+
-- Git
-- Docker Desktop (for Trivy)
-- GitHub account
+### 1️⃣ Clone the Repository
 
-### Installation
 ```bash
-# Clone the repo
-git clone <your-repo-url>
-cd ci-cd-security-plugin
+git clone https://github.com/Ayush-shaw27/CI-CD-DevOps.git
+cd CI-CD-DevOps
+```
 
-# Setup virtual environment
+### 2️⃣ Create and Activate Virtual Environment
+
+**Windows (PowerShell):**
+```powershell
 python -m venv .venv
-source .venv/bin/activate   # (Linux/macOS)
-.\.venv\Scriptsctivate    # (Windows PowerShell)
+.\.venv\Scripts\activate
+```
 
-# Install dependencies
+**Linux/Mac:**
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+### 3️⃣ Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
+### 4️⃣ Configure Environment
+
+Copy `.env.example` → `.env` and update:
+
+```ini
+DATABASE_URL=mysql+pymysql://user:pass@localhost:3306/medical_records
+SECRET_KEY=your-secret
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
 ---
 
-## 🔍 Running the Plugin
+## 🧠 Running the API
 
-### Run Locally
 ```bash
-python -m src.ci_cd_plugin.core.run --config config/config.yaml
+uvicorn main:app --reload
 ```
 
-### Run Secret Scanner Only
+- **API Docs:** http://localhost:8000/docs
+- **Redoc:** http://localhost:8000/redoc
+
+---
+
+## 🔒 DevSecOps Integration Overview
+
+### ✅ Automated Scans
+
+Security checks run via:
+
+- **GitLeaks** — Secrets detection
+- **Checkov** — Infrastructure-as-Code scan
+- **Trivy** — Container image vulnerability scan
+
+Triggered automatically in CI/CD pipeline or manually:
+
 ```bash
-gitleaks detect --source . --report-format json --report-path reports/gitleaks.json
+python scripts/run_security_scan.py
 ```
 
-### Run IaC Scanner Only
+**Reports generated under `/reports/`:**
+- `mock_report.json` — latest scan
+- `mock_report_history.json` — previous builds
+
+---
+
+## 📊 CI/CD Security Dashboard
+
+Built by the frontend developer using React/Vue.
+
+- Displays scan history, severity counts, and trends
+- Pulls data from `/reports/mock_report_history.json`
+
+---
+
+## 🔔 Alerts & Notifications
+
+### Slack Alerts
+- Configured via GitHub Secrets → `SLACK_WEBHOOK_URL`
+- Triggered automatically in CI on failed build:
+
 ```bash
-checkov -d infra -o json > reports/checkov.json
+python scripts/notify.py
 ```
 
-### Run Container Scanner Only
+### Email Alerts (Optional)
+Add secrets:
+- `SMTP_USER`
+- `SMTP_PASS`
+- `ALERT_RECIPIENTS` (comma-separated)
+
+Script automatically emails on CRITICAL or HIGH findings.
+
+*See `docs/notify.md` for setup guide.*
+
+---
+
+## 🧪 Testing
+
+Run all tests (including notification tests):
+
 ```bash
-trivy fs . --format json --output reports/trivy.json
+pytest -q
 ```
 
----
-
-## 📊 Reports & Frontend
-
-The plugin generates:
-- **CLI Output** → Build logs in GitHub Actions.
-- **JSON Reports** → For automation & machine processing.
-- **HTML Reports** (optional) → Human-readable summary with severity breakdowns.
-
-Reports show:
-- Number of issues found
-- Severity breakdown (Critical, High, Medium, Low)
-- Files/lines/resources affected
-- Pass/Fail decision
+**Tests are located in `/tests/`:**
+- `test_api.py` — FastAPI endpoints
+- `test_iac_scanner.py` — IaC scanner logic
+- `test_secret_scanner.py` — GitLeaks wrapper
+- `test_notify.py` — Notification module tests
 
 ---
 
-## 🔗 CI/CD Integration (GitHub Actions Example)
+## 🧭 QA Verification Checklist
 
-Create `.github/workflows/security-scan.yml`:
+*See `docs/verification_checklist.md`*
 
-```yaml
-name: Security Scan
-
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-
-jobs:
-  security-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run Security Plugin
-        run: python -m src.ci_cd_plugin.core.run --config config/config.yaml
-
-      - name: Upload Reports
-        uses: actions/upload-artifact@v3
-        with:
-          name: security-reports
-          path: reports/
-```
+- [ ] Run all unit tests
+- [ ] Validate Slack alerts
+- [ ] Verify reports format
+- [ ] Confirm configuration matches `config/config.yaml`
 
 ---
 
-## 🏥 Example Use Case (Medical Records Management System)
+## 🧰 GitHub Actions CI/CD Pipeline
 
-The plugin is demonstrated on a **Medical Records Management System pipeline** because:
-- Handles **sensitive patient data & personal health information (PHI)** → requires strict security and compliance (HIPAA/GDPR).  
-- Has **backend code, Infrastructure-as-Code, and containerized services** → all three scanner types apply.  
-- Industry relevance → Protecting patient data, ensuring regulatory compliance, and preventing breaches in healthcare applications.
+**Workflow:** `.github/workflows/local_ci.yml`
 
-
----
-
-## 📈 Future Enhancements
-
-- Parallel scanning for faster runs
-- Slack/Email notifications for critical findings
-- Scheduled scans (nightly/weekly)
-- Central dashboard with visualizations
-- Extend support for Azure & GCP IaC scanning
+- Runs `pytest`
+- Executes `run_security_scan.py`
+- Uploads reports as artifacts
+- Sends Slack alerts on failure
 
 ---
 
-## 📜 License
-This project is licensed under the MIT License.
+## 🩺 Project Summary
+
+| Role | Responsibilities |
+|------|------------------|
+| Backend Developer | Core logic, plugin orchestration, policy engine |
+| DevSecOps Engineer | Integrates GitLeaks, Checkov, Trivy |
+| QA Engineer | Unit tests, docs, verification |
+| CI/CD Specialist | GitHub Actions setup, artifact upload |
+| Frontend Developer | Builds security dashboard visualization |
 
 ---
+
+## 🧾 License
+
+This project is for educational and demonstration purposes only.  
+All trademarks and libraries belong to their respective owners.
