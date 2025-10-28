@@ -1,0 +1,54 @@
+name: Local CI/CD Simulation (notify on failure)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          source .venv/bin/activate
+          pytest -q
+
+      - name: Run security scans
+        run: |
+          source .venv/bin/activate
+          python scripts/run_security_scan.py
+
+      - name: Upload scan reports as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-reports
+          path: reports/*.json
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          source .venv/bin/activate
+          python scripts/notify.py --report reports/mock_report.json --config config/config.yaml
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          ALERT_RECIPIENTS: ${{ secrets.ALERT_RECIPIENTS }}
