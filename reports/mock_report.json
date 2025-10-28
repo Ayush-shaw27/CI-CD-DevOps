@@ -1,50 +1,43 @@
 {
   "secrets": [
     {
-      "scanner": "GitLeaks",
-      "rule_id": "GIT001",
+      "scanner": "gitleaks",
+      "rule_id": "GL001",
       "file_path": "api/auth.py",
-      "severity": "CRITICAL",
-      "message": "Hardcoded AWS Access Key found"
+      "severity": "HIGH",
+      "message": "Hardcoded AWS secret key found in file"
     },
     {
-      "scanner": "GitLeaks",
-      "rule_id": "GIT002",
-      "file_path": "database/models.py",
-      "severity": "HIGH",
-      "message": "Potential hardcoded database password"
+      "scanner": "gitleaks",
+      "rule_id": "GL002",
+      "file_path": "scripts/db_init.py",
+      "severity": "LOW",
+      "message": "Possible credential pattern - verify"
     }
   ],
   "iac": [
     {
-      "scanner": "Checkov",
-      "rule_id": "CKV_AWS_001",
-      "file_path": "infra/main.tf",
-      "severity": "HIGH",
+      "scanner": "checkov",
+      "rule_id": "CKV_AWS_20",
+      "file_path": "infra/s3.tf",
+      "severity": "CRITICAL",
       "message": "S3 bucket allows public read access"
     },
     {
-      "scanner": "Checkov",
-      "rule_id": "CKV_AWS_002",
-      "file_path": "infra/sg.tf",
+      "scanner": "checkov",
+      "rule_id": "CKV_AWS_6",
+      "file_path": "infra/main.tf",
       "severity": "MEDIUM",
-      "message": "Security group allows ingress from 0.0.0.0/0"
+      "message": "IAM role with wildcard permissions"
     }
   ],
   "container": [
     {
-      "scanner": "Trivy",
-      "rule_id": "CVE-2023-12345",
-      "package": "openssl",
-      "severity": "CRITICAL",
-      "message": "Vulnerability in OpenSSL < 1.1.1v"
-    },
-    {
-      "scanner": "Trivy",
-      "rule_id": "CVE-2023-56789",
-      "package": "curl",
-      "severity": "LOW",
-      "message": "Outdated curl version with minor bug"
+      "scanner": "trivy",
+      "rule_id": "TRV-001",
+      "file_path": "Dockerfile",
+      "severity": "MEDIUM",
+      "message": "OpenSSL version in image is outdated"
     }
   ]
 }
